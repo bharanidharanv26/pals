@@ -1,0 +1,12 @@
+services:
+  rescuegrid:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - rescuegrid-data:/app/runtime
+    environment:
+      PORT: "8000"
+    restart: unless-stopped
+volumes:
+  rescuegrid-data:

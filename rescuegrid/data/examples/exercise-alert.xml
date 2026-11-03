@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>rescuegrid-exercise-flood-001</identifier>
+  <sender>RescueGrid academic demonstration</sender>
+  <sent>2026-11-03T08:00:00+05:30</sent>
+  <status>Exercise</status>
+  <msgType>Alert</msgType>
+  <scope>Public</scope>
+  <info>
+    <language>en-IN</language>
+    <category>Met</category>
+    <event>Simulated river flooding</event>
+    <urgency>Expected</urgency>
+    <severity>Severe</severity>
+    <certainty>Possible</certainty>
+    <expires>2026-11-03T20:00:00+05:30</expires>
+    <headline>EXERCISE ONLY — Guwahati flood-response scenario</headline>
+    <description>Fabricated CAP example for testing source import. This is not an official warning. No casualty demand is implied.</description>
+    <area>
+      <areaDesc>Demonstration polygon around Guwahati</areaDesc>
+      <polygon>26.10,91.68 26.20,91.68 26.20,91.80 26.10,91.80 26.10,91.68</polygon>
+    </area>
+  </info>
+</alert>

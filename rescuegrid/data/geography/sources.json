@@ -1,0 +1,22 @@
+[
+  {
+    "dataset": "states",
+    "url": "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1_simplified.geojson",
+    "provider": "DataMeet India community, Election Commission of India",
+    "license": "Creative Commons Attribution 2.5 India (CC BY 2.5 IN)",
+    "year": "2011",
+    "count": 36,
+    "retrieved_at": "2026-11-03T01:02:10.700976+00:00",
+    "note": "Historical reference boundaries; not a current authoritative administrative register."
+  },
+  {
+    "dataset": "district-boundaries",
+    "url": "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson",
+    "provider": "Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2021",
+    "count": 735,
+    "retrieved_at": "2026-11-03T01:02:13.858280+00:00",
+    "note": "Historical reference boundaries; not a current authoritative administrative register."
+  }
+]

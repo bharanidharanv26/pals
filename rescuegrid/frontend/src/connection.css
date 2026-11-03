@@ -1,0 +1,10 @@
+.connection-banner{display:flex;align-items:center;gap:14px;padding:14px 28px;border-bottom:1px solid #7c5635;background:#35291e;color:#e7c79d;flex-shrink:0}
+.connection-banner>svg{flex-shrink:0}
+.connection-banner>div{flex:1;min-width:0}
+.connection-banner strong{font-size:12px;font-weight:650}
+.connection-banner p{font-size:11px;line-height:1.7;color:#cbb69a;margin-top:4px}
+.connection-banner .button{background:#453522;border-color:#876742;color:#f0d7ad}
+.map-source-warning{position:absolute;left:15px;right:55px;top:55px;display:flex;align-items:center;gap:10px;background:#30281ee8;border:1px solid #7c623b;border-radius:5px;padding:8px 10px;color:#e0c69b;font-size:10px;z-index:2}
+.map-source-warning span{flex:1}
+.map-source-warning button{background:none;border:0;color:#e0eeb5;display:flex;gap:5px;align-items:center;font-size:10px}
+@media(max-width:760px){.connection-banner{padding:12px 15px;gap:9px;flex-wrap:wrap}.connection-banner>div{min-width:180px}.connection-banner>svg{width:17px}.connection-banner strong{font-size:11px}.connection-banner p{font-size:10px}.connection-banner .button{margin-left:26px;min-height:33px}.map-source-warning{font-size:9px;left:10px;right:48px}}

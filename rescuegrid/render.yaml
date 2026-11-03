@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: rescuegrid-india
+    runtime: docker
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "8000"
