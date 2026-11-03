@@ -1,25 +1,25 @@
 import {test,expect} from '@playwright/test';
 
-test('national overview loads offline geography without JavaScript errors',async({page})=>{
+test('chennai overview loads offline geography without JavaScript errors',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://**/*',route=>route.abort());
  await page.goto('/');
- await expect(page.getByRole('heading',{name:'National response overview'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Chennai response overview'})).toBeVisible();
  await expect(page.locator('.maplibregl-canvas')).toBeVisible();
- await expect(page.locator('.incident-marker')).toHaveCount(12);
+ await expect(page.locator('.incident-marker')).toHaveCount(4);
  expect(await page.locator('.incident-marker').first().evaluate(el=>getComputedStyle(el).position)).toBe('absolute');
  await page.waitForTimeout(1200);
  await page.screenshot({path:'test-results/overview-desktop.png',fullPage:true});
  expect(errors).toEqual([]);
- await page.getByRole('combobox',{name:'Disaster type',exact:true}).selectOption('flood');
- await expect(page.locator('.incident-marker')).toHaveCount(2);
- await expect(page.locator('.metric').nth(2).locator('.metric-value')).toHaveText('5');
+ await page.getByRole('combobox',{name:'Disaster type',exact:true}).selectOption('road');
+ await expect(page.locator('.incident-marker')).toHaveCount(4);
+ await expect(page.locator('.metric').nth(2).locator('.metric-value')).toHaveText('11');
 });
 
 test('create incident, explain dispatch, reserve resources and advance simulation',async({page})=>{
  await page.goto('/');await page.getByRole('button',{name:'Report incident',exact:true}).click();
  const dialog=page.getByRole('dialog');
- await dialog.getByRole('combobox',{name:'Region',exact:true}).selectOption('RJ');
+ await dialog.getByRole('combobox',{name:'Region',exact:true}).selectOption('CHN-C');
  await dialog.getByRole('combobox',{name:'Disaster type',exact:true}).selectOption('heatwave');
  await dialog.getByLabel('Incident title',{exact:true}).fill('Browser test · heat exposure');
  await dialog.getByLabel('Patients',{exact:true}).fill('2');
@@ -42,7 +42,7 @@ test('regional map and imported roads load after changing exercise',async({page}
  const warnings:string[]=[];page.on('console',msg=>{if(msg.type()==='warning'||msg.type()==='error')warnings.push(msg.text());});
  await page.goto('/');await page.getByRole('button',{name:'Load exercise',exact:true}).first().click();
  const dialog=page.getByRole('dialog');
- await dialog.getByRole('button',{name:/Chennai · highway collision/}).click();
+ await dialog.getByRole('button',{name:/Chennai · Saidapet highway crash/}).click();
  await dialog.getByLabel('Incidents to generate').fill('1');
  await dialog.getByRole('button',{name:'Start exercise',exact:true}).click();
  await expect(page.getByRole('dialog')).not.toBeVisible();
@@ -56,8 +56,8 @@ test('regional map and imported roads load after changing exercise',async({page}
 
 test('resource availability and hospital admissions can be changed',async({page})=>{
  await page.goto('/');await page.getByRole('button',{name:'Resources',exact:true}).first().click();
- await page.getByLabel('Region',{exact:true}).selectOption('RJ');
- const first=page.getByRole('row').filter({hasText:'RJ-ALS-01'});
+ await page.getByLabel('Region',{exact:true}).selectOption('CHN-C');
+ const first=page.getByRole('row').filter({hasText:'CHN-C-ALS-01'});
  await first.getByRole('button',{name:'Take offline',exact:true}).click();
  await expect(first.getByRole('button',{name:'Restore',exact:true})).toBeVisible();
  await first.getByRole('button',{name:'Restore',exact:true}).click();
@@ -71,7 +71,7 @@ test('resource availability and hospital admissions can be changed',async({page}
 
 test('controlled experiment completes and recorded trace can be replayed',async({page})=>{
  await page.goto('/');await page.getByRole('button',{name:/Simulation lab/}).click();
- await page.getByRole('combobox',{name:'Scenario',exact:true}).selectOption('heatwave');
+ await page.getByRole('combobox',{name:'Scenario',exact:true}).selectOption('chennai_flood');
  await page.getByRole('combobox',{name:'Horizon (minutes)',exact:true}).selectOption('120');
  await page.getByRole('button',{name:'Run comparison',exact:true}).click();
  await expect(page.getByText('Computed results',{exact:true})).toBeVisible({timeout:90_000});
@@ -95,11 +95,11 @@ test('pre-positioning creates real timed cross-region transfers',async({page})=>
 
 test('Hindi and Tamil navigation and responsive phone layout',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- await page.goto('/');await expect(page.getByRole('heading',{name:'National response overview'})).toBeVisible();
+ await page.goto('/');await expect(page.getByRole('heading',{name:'Chennai response overview'})).toBeVisible();
  await page.getByLabel('Interface language').selectOption('hi');
- await expect(page.getByRole('heading',{name:'राष्ट्रीय प्रतिक्रिया अवलोकन'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'चेन्नई प्रतिक्रिया अवलोकन'})).toBeVisible();
  await page.getByLabel('Interface language').selectOption('ta');
- await expect(page.getByRole('heading',{name:'தேசிய மீட்பு மேலோட்டம்'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'சென்னை மீட்பு மேலோட்டம்'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.getByLabel('Interface language').selectOption('en');
  await page.screenshot({path:'test-results/overview-mobile.png',fullPage:true});

@@ -1,1 +1,1 @@
-"""RescueGrid India: reproducible emergency response research."""
+"""RescueGrid Chennai: reproducible emergency response research."""

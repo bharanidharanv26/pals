@@ -15,9 +15,17 @@ def distance(a, b):
     h = math.sin((lat2-lat1)/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin((lon2-lon1)/2)**2
     return 6371 * 2 * math.asin(min(1, math.sqrt(h)))
 
-@lru_cache(maxsize=48)
-def network(region):
-    path = ROOT / 'data' / 'networks' / f'{region}.json'
+# All Chennai zones share one imported city road package. A zone is an
+# operational grouping, so route() and nearest() still use the same graph.
+CHENNAI_NETWORK = 'TN'
+NETWORK_ALIAS = {r[0]: CHENNAI_NETWORK for r in [
+    ('CHN-N',), ('CHN-C',), ('CHN-W',), ('CHN-NW',),
+    ('CHN-S',), ('CHN-SW',), ('CHN-E',), ('CHN-SE',),
+]}
+
+@lru_cache(maxsize=16)
+def _imported(key):
+    path = ROOT / 'data' / 'networks' / f'{key}.json'
     if path.exists():
         data = json.loads(path.read_text(encoding='utf-8'))
         g = nx.DiGraph()
@@ -30,8 +38,15 @@ def network(region):
             minutes=e.get('minutes',max(.05, km/e.get('speed',30)*60))
             if not g.has_edge(a,b) or minutes<g[a][b]['minutes']:
                 g.add_edge(a,b, km=km, minutes=minutes, edge_id=f'{a}:{b}',geometry=coords)
-        g.graph.update(source='OpenStreetMap regional extract', mode='osm', imported=data.get('retrieved'),fingerprint=hashlib.sha256(path.read_bytes()).hexdigest())
+        g.graph.update(source='OpenStreetMap Chennai extract', mode='osm', imported=data.get('retrieved'),fingerprint=hashlib.sha256(path.read_bytes()).hexdigest())
         return g
+    return None
+
+@lru_cache(maxsize=48)
+def network(region):
+    imported = _imported(NETWORK_ALIAS.get(region, region))
+    if imported is not None:
+        return imported
     r = REGION_BY_ID[region]
     g = nx.DiGraph()
     # A bounded, explicitly synthetic transport graph anchored to real coordinates.

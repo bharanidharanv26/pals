@@ -29,11 +29,11 @@ async def lifespan(application):
     await asyncio.to_thread(store.recover_interrupted_experiments)
     yield
 
-app=FastAPI(title='RescueGrid India',version='1.0.1',lifespan=lifespan,description='Academic multi-hazard response simulation. Synthetic operational data.')
+app=FastAPI(title='RescueGrid Chennai',version='1.1.0',lifespan=lifespan,description='Chennai multi-hazard response simulation. Synthetic operational data.')
 app.add_middleware(GZipMiddleware,minimum_size=1000)
 
 class ScenarioInput(BaseModel):
-    preset:str='national'
+    preset:str='chennai_city'
     seed:int=Field(default=42,ge=0,le=2**31-1)
     region:str|None=None
     hazard:str|None=None
@@ -53,8 +53,8 @@ class IncidentInput(BaseModel):
     patients:int=Field(default=2,ge=0,le=20)
     evacuees:int=Field(default=0,ge=0,le=100)
     title:str|None=Field(default=None,max_length=120)
-    longitude:float|None=Field(default=None,ge=68,le=98)
-    latitude:float|None=Field(default=None,ge=6,le=38)
+    longitude:float|None=Field(default=None,ge=79.9,le=80.4)
+    latitude:float|None=Field(default=None,ge=12.8,le=13.35)
     @model_validator(mode='after')
     def valid(self):
         if self.region not in REGION_BY_ID or self.hazard not in HAZARDS:raise ValueError('Unknown region or disaster')
@@ -112,7 +112,7 @@ def change(sid,fn):
         return result if result is not None else snapshot(s)
 
 @app.get('/api/health')
-def health():return dict(status='ok',version='1.0.1',service='rescuegrid-india',pid=os.getpid(),instance_id=INSTANCE_ID)
+def health():return dict(status='ok',version='1.1.0',service='rescuegrid-chennai',pid=os.getpid(),instance_id=INSTANCE_ID)
 
 @app.get('/api/catalog')
 def catalog():
@@ -147,7 +147,7 @@ def incident(body:IncidentInput,x_session_id:str|None=Header(default=None)):
         node=None
         if body.longitude is not None:
             point=[body.longitude,body.latitude];node=nearest(body.region,point)
-            if distance(point,network(body.region).nodes[node]['pos'])>5:raise ValueError('Location is more than 5 km from the loaded network. Import a regional road package for this location.')
+            if distance(point,network(body.region).nodes[node]['pos'])>5:raise ValueError('Location is more than 5 km from the Chennai road network. Choose a point inside Chennai.')
         inc=add_incident(s,body.region,body.hazard,body.severity,body.patients,body.evacuees,body.title,node)
         emit(s,'incident',f"New incident: {inc['title']}",inc['id']);s['revision']+=1
     return change(x_session_id,action)
@@ -242,8 +242,9 @@ def commit_placement(body:CommitInput,x_session_id:str|None=Header(default=None)
 
 @app.get('/api/districts')
 def districts(region:str|None=None):
-    path=ROOT/'data'/'geography'/'districts.json'
-    rows=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+    # Chennai-only reference directory: the operating zones replace the old
+    # national district index.
+    rows=[dict(id=z['id'],name=z['name'],region=z['id'],position=[z['lon'],z['lat']],year='2026') for z in REGIONS]
     return [r for r in rows if not region or r['region']==region]
 
 @app.post('/api/experiments')

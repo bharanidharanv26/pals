@@ -87,7 +87,7 @@ def main():
             key,value=line.split('=',1)
             if key.strip() in ('DATABASE_URL','SACHET_FEED_URL','PORT'):
                 os.environ.setdefault(key.strip(),value.strip().strip('"').strip("'"))
-    parser=argparse.ArgumentParser(description='Start RescueGrid India')
+    parser=argparse.ArgumentParser(description='Start RescueGrid Chennai')
     parser.add_argument('--host',default='127.0.0.1')
     parser.add_argument('--port',type=int,default=int(os.environ.get('PORT','8000')))
     parser.add_argument('--no-browser',action='store_true')
@@ -122,7 +122,7 @@ def main():
                 if server_health(args.port):webbrowser.open(url);return
                 time.sleep(.5)
         threading.Thread(target=open_when_ready,daemon=True).start()
-    print(f'RescueGrid India: {url}\nAPI documentation: {url}/docs\nPress Ctrl+C to stop.')
+    print(f'RescueGrid Chennai: {url}\nAPI documentation: {url}/docs\nPress Ctrl+C to stop.')
     import uvicorn
     uvicorn.run('backend.app:app',host=args.host,port=args.port,workers=1)
 

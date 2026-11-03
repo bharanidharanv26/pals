@@ -33,7 +33,7 @@ test('background launch survives 30 seconds, Play advances, restart restores the
   await run('--background'); // Repeated starts reuse the service instead of binding twice.
   expect((await (await request.get(`${base}/api/health`)).json()).pid).toBe(firstHealth.pid);
   await page.goto(base);
-  await expect(page.getByRole('heading',{name:'National response overview'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Chennai response overview'})).toBeVisible();
   const original=await state(page);
   await page.getByLabel('Simulation speed').selectOption('1');
   await page.getByRole('button',{name:'Play',exact:true}).click();
@@ -71,7 +71,7 @@ test('background launch survives 30 seconds, Play advances, restart restores the
 
 test('lost response pauses playback and reconnect reads committed state without replaying the action',async({page,request})=>{
  await page.goto('/');
- await expect(page.getByRole('heading',{name:'National response overview'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Chennai response overview'})).toBeVisible();
  const before=await state(page);
  let blockState=false;let advanceCalls=0;
  await page.route('**/api/state',route=>blockState?route.abort('failed'):route.continue());
@@ -101,21 +101,21 @@ test('lost response pauses playback and reconnect reads committed state without 
  await expect(page.locator('.clock-label strong')).toHaveText('00:10:00');
 });
 
-test('late regional geometry cannot replace All India and wheel scrolling does not zoom the map',async({page})=>{
+test('late zone geometry cannot replace All Chennai zones and wheel scrolling does not zoom the map',async({page})=>{
  await page.goto('/');
- await expect(page.locator('.incident-marker')).toHaveCount(12);
+ await expect(page.locator('.incident-marker')).toHaveCount(4);
  let release!:()=>void;
  const delayed=new Promise<void>(resolve=>{release=resolve;});
  let requested!:()=>void;
  const incoming=new Promise<void>(resolve=>{requested=resolve;});
- await page.route('**/api/networks/TN',async route=>{
+ await page.route('**/api/networks/CHN-C',async route=>{
   requested();await delayed;
   try{await route.continue();}catch{/* This obsolete request is deliberately aborted by the component. */}
  });
- await page.getByRole('combobox',{name:'Region',exact:true}).selectOption('TN');
+ await page.getByRole('combobox',{name:'Region',exact:true}).selectOption('CHN-C');
  await incoming;
  await page.getByRole('combobox',{name:'Region',exact:true}).selectOption('ALL');
- await expect(page.locator('.incident-marker')).toHaveCount(12);
+ await expect(page.locator('.incident-marker')).toHaveCount(4);
  const offset=()=>page.locator('.incident-marker').first().evaluate(el=>{
   const map=el.closest('.map-wrap')!.getBoundingClientRect();const pin=el.getBoundingClientRect();
   return {x:pin.x-map.x,y:pin.y-map.y};

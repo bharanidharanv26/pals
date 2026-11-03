@@ -14,12 +14,12 @@ def job_record(status='queued',owner='recovery-test'):
 def test_health_identifies_the_actual_running_process():
     import os
     health=client.get('/api/health').json()
-    assert health['service']=='rescuegrid-india'
+    assert health['service']=='rescuegrid-chennai'
     assert health['pid']==os.getpid()
     assert len(health['instance_id'])==32
 
 def test_old_playback_revision_cannot_advance_twice():
-    state=client.post('/api/sessions',json={'preset':'heatwave','count':1}).json()
+    state=client.post('/api/sessions',json={'preset':'chennai_city','count':1}).json()
     headers={'X-Session-ID':state['id']}
     request=dict(minutes=5,expected_revision=state['revision'])
     first=client.post('/api/advance',json=request,headers=headers)
@@ -48,7 +48,7 @@ def test_late_worker_cannot_overwrite_cancellation_or_completed_results():
     assert store.cancel_experiment(complete['id'],complete['owner'])=='completed'
 
 def test_restart_marks_unfinished_jobs_and_preserves_workspace():
-    state=client.post('/api/sessions',json={'preset':'chennai','count':1}).json()
+    state=client.post('/api/sessions',json={'preset':'chennai_city','count':1}).json()
     headers={'X-Session-ID':state['id']}
     saved=client.post('/api/advance',json={'minutes':5},headers=headers).json()
     queued=job_record('queued',state['id'])

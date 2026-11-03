@@ -2,20 +2,35 @@ from __future__ import annotations
 import copy
 import random
 from .catalog import REGIONS, REGION_BY_ID, HAZARDS, PRESETS, RESOURCE_TYPES
-from .routing import network, node_position
+from .routing import network, node_position, nearest, distance
 
 def stable_seed(seed, text):
     import hashlib
     return int(hashlib.sha256(f'{seed}:{text}'.encode()).hexdigest()[:12],16)
 
+def nearby_nodes(region, radius_km=3.0):
+    """Road nodes within a short radius of the zone anchor.
+
+    Every Chennai zone shares the imported city road graph, so zone membership is
+    spatial rather than a separate network. This keeps incidents and assets in
+    the locality the operator selected.
+    """
+    anchor=REGION_BY_ID[region]
+    point=[anchor['lon'],anchor['lat']]
+    graph=network(region)
+    nodes=[n for n in graph.nodes if distance(point,graph.nodes[n]['pos'])<=radius_km]
+    return nodes or list(graph.nodes)
+
 def add_incident(state, region, hazard, severity, patients, evacuees=0, title=None, node=None, reported_at=None):
     index=len(state['incidents'])+1
     iid=f'INC-{index:04d}'
     rng=random.Random(stable_seed(state['seed'],iid))
-    nodes=list(network(region).nodes)
-    node=str(node) if node is not None else nodes[rng.randrange(len(nodes))]
+    if node is None:
+        nodes=nearby_nodes(region)
+        node=nodes[rng.randrange(len(nodes))]
+    node=str(node)
     if node not in network(region):
-        raise ValueError('Location is outside the loaded transport network')
+        raise ValueError('Location is outside the loaded Chennai road network')
     t=state['now'] if reported_at is None else reported_at
     h=HAZARDS[hazard]
     inc=dict(id=iid,region=region,hazard=hazard,severity=severity,title=title or f"{h['name']} · {REGION_BY_ID[region]['city']}",
@@ -35,7 +50,7 @@ def add_incident(state, region, hazard, severity, patients, evacuees=0, title=No
     state['incidents'].append(inc)
     return inc
 
-def create_world(preset='national',seed=42,region=None,hazard=None,count=None,extra_ambulances=0):
+def create_world(preset='chennai_city',seed=42,region=None,hazard=None,count=None,extra_ambulances=0):
     p=next((p for p in PRESETS if p['id']==preset),PRESETS[0])
     chosen_region=region or p['region']
     chosen_hazard=hazard or p['hazard']
@@ -46,30 +61,33 @@ def create_world(preset='national',seed=42,region=None,hazard=None,count=None,ex
                description=p['description'],next_event_id=1)
     types=['als','als','bls','bls','bls','bls','rescue','heavy_rescue','boat','mountain_rescue','fire_engine','hazmat','medical_team','supply_truck','bus','bus','helicopter']
     for r in REGIONS:
-        nodes=list(network(r['id']).nodes)
+        nodes=nearby_nodes(r['id'])
         rng=random.Random(stable_seed(seed,r['id']))
         for j,kind in enumerate(types+['als']*extra_ambulances):
             n=nodes[rng.randrange(len(nodes))]
             state['resources'].append(dict(id=f"{r['id']}-{kind.upper()}-{j+1:02d}",name=RESOURCE_TYPES[kind],type=kind,
                 region=r['id'],home_region=r['id'],node=n,position=node_position(r['id'],n),status='available',
                 assignment=None,available_at=0.0,capacity=20 if kind=='bus' else (6 if kind=='boat' else (2 if kind=='helicopter' else 1)),busy_minutes=0.0))
+        # Place three hospitals and a shelter around the zone anchor, not at arbitrary city nodes.
         for j,(name,caps,bays) in enumerate([
             ('Regional Medical Centre',['general','trauma'],3),
             ('District Emergency Hospital',['general','trauma','burns','isolation'],4),
             ('Specialist Care Centre',['general','burns','isolation'],2),
             ('Community Shelter',[],80),
         ]):
-            n=nodes[min(len(nodes)-1,int(len(nodes)*[.24,.73,.51,.43][j]))]
+            lon,lat=r['lon'],r['lat']
+            offset=[(0.0,0.0),(0.012,0.008),(-0.010,0.010),(0.008,-0.012)][j]
+            n=nearest(r['id'],[lon+offset[0],lat+offset[1]])
             state['facilities'].append(dict(id=f"{r['id']}-H{j+1}",name=f"{r['city']} {name}",region=r['id'],node=n,
                 position=node_position(r['id'],n),kind='shelter' if not caps else 'hospital',capabilities=caps,
                 capacity=bays,baseline_occupied=0 if not caps else (1 if j<2 else 0),baseline_release=35.0,
                 closed=False,reservations=[],shelter_reserved=0,shelter_occupied=0,source='Synthetic demonstration facility'))
     if chosen_region=='ALL':
-        places=['AS','TN','OD','DL','MH','UK','GJ','KL','AN','RJ','BR','WB']
-        hazards=['flood','road','cyclone','road','fire','landslide','earthquake','flood','tsunami','heatwave','epidemic','rail']
+        zones=[r['id'] for r in REGIONS]
+        hazards=['road','flood','fire','rail','cyclone','heatwave','road','tsunami']
         for j in range(count or p['count']):
             hz=hazards[j%len(hazards)] if chosen_hazard=='mixed' else chosen_hazard
-            add_incident(state,places[j%len(places)],hz,'critical' if j%3==0 else 'serious',2+j%3,
+            add_incident(state,zones[j%len(zones)],hz,'critical' if j%3==0 else 'serious',2+j%3,
                          evacuees=12+j*2 if hz in ['flood','cyclone','tsunami'] else 0)
     else:
         for j in range(count or p['count']):
@@ -77,9 +95,7 @@ def create_world(preset='national',seed=42,region=None,hazard=None,count=None,ex
             add_incident(state,chosen_region,hz,'critical' if j%3==0 else 'serious',2+j%3,
                          evacuees=10+j*3 if hz in ['flood','cyclone','tsunami'] else 0,
                          reported_at=0 if j<3 else (j-2)*12)
-    if preset=='compound':
-        state['disruptions']=[dict(at=18,kind='hospital',target='KL-H1',applied=False),dict(at=32,kind='corridor',target='KL',applied=False)]
-    if preset=='capacity' and chosen_region!='ALL':
+    if preset=='chennai_capacity' and chosen_region!='ALL':
         near=next(f for f in state['facilities'] if f['id']==f'{chosen_region}-H1')
         near.update(capacity=2,baseline_occupied=2,baseline_release=120)
         other=next(f for f in state['facilities'] if f['id']==f'{chosen_region}-H2')

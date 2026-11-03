@@ -8,11 +8,11 @@ from backend.routing import network,route
 from backend.coordination import placement
 
 def local(hazard='road',patients=2,evacuees=0):
-    s=create_world('heatwave',seed=7,region='RJ',hazard=hazard,count=1)
-    s['resources']=[r for r in s['resources'] if r['region']=='RJ']
-    s['facilities']=[f for f in s['facilities'] if f['region']=='RJ']
+    s=create_world('chennai_city',seed=7,region='CHN-C',hazard=hazard,count=1)
+    s['resources']=[r for r in s['resources'] if r['region']=='CHN-C']
+    s['facilities']=[f for f in s['facilities'] if f['region']=='CHN-C']
     s['incidents']=[];s['patients']=[]
-    add_incident(s,'RJ',hazard,'critical',patients,evacuees)
+    add_incident(s,'CHN-C',hazard,'critical',patients,evacuees)
     return s
 
 def assert_capacity(s):
@@ -49,7 +49,7 @@ def test_capacity_and_resource_exclusivity_under_scarcity():
     s=local('fire',6)
     for f in s['facilities']:
         if f['kind']=='hospital':f.update(capacity=1,baseline_occupied=0)
-    add_incident(s,'RJ','fire','critical',5)
+    add_incident(s,'CHN-C','fire','critical',5)
     advance(s,360)
     assert_capacity(s)
     assert metrics(s)['treated']>0
@@ -61,10 +61,10 @@ def test_stale_and_duplicate_dispatch_rejected():
     with pytest.raises(ValueError,match='resource'):commit(local(),p)
 
 def test_blocked_graph_returns_no_path_and_no_fake_direct_route():
-    s=local();g=network('RJ');nodes=list(g.nodes)
-    blocked={'closed_edges':{'RJ':[f'{a}:{b}' for a,b in g.edges]},'traffic':1}
-    assert route('RJ',nodes[0],nodes[-1],blocked) is None
-    assert route('RJ',nodes[0],nodes[-1],{'traffic':1}) is not None
+    s=local();g=network('CHN-C');nodes=list(g.nodes)
+    blocked={'closed_edges':{'CHN-C':[f'{a}:{b}' for a,b in g.edges]},'traffic':1}
+    assert route('CHN-C',nodes[0],nodes[-1],blocked) is None
+    assert route('CHN-C',nodes[0],nodes[-1],{'traffic':1}) is not None
 
 def test_severe_weather_holds_air_and_water_rescue():
     s=local('flood',2,6);s['conditions']['weather']='severe'
@@ -83,7 +83,7 @@ def test_unavailable_advanced_ambulances_never_replaced_with_basic():
     assert any(u['patient_id']==s['patients'][0]['id'] for u in p['unassigned'])
 
 def test_unknown_future_incidents_do_not_enter_plan():
-    s=local();i=add_incident(s,'RJ','road','critical',2,reported_at=120)
+    s=local();i=add_incident(s,'CHN-C','road','critical',2,reported_at=120)
     p=build_plan(s)
     assert i['id'] not in {a['incident_id'] for a in p['rescues']+p['assignments']}
     assert metrics(s)['incidents']==1
@@ -94,16 +94,16 @@ def test_same_seed_and_policy_produce_same_small_run():
     assert a['events']==b['events']
 
 def test_mutual_aid_preserves_reserves_and_requires_travel():
-    s=create_world('heatwave');r=next(r for r in s['resources'] if r['region']=='MP' and r['type']=='als')
-    with pytest.raises(ValueError,match='reserve'):transfer(s,r['id'],'RJ',reserve=2)
-    tr=transfer(s,r['id'],'RJ',reserve=1)
-    assert r['status']=='transferring' and r['region']=='MP'
+    s=create_world('chennai_city');r=next(r for r in s['resources'] if r['region']=='CHN-N' and r['type']=='als')
+    with pytest.raises(ValueError,match='reserve'):transfer(s,r['id'],'CHN-C',reserve=2)
+    tr=transfer(s,r['id'],'CHN-C',reserve=1)
+    assert r['status']=='transferring' and r['region']=='CHN-N'
     assert tr['arrival_at']>s['now']
     advance(s,tr['arrival_at']+1,auto=False)
-    assert r['region']=='RJ' and r['status']=='available'
+    assert r['region']=='CHN-C' and r['status']=='available'
 
 def test_prepositioning_respects_donor_minima():
-    s=create_world('heatwave');p=placement(s,'RJ','als',5,1)
+    s=create_world('chennai_city');p=placement(s,'CHN-C','als',5,1)
     assert len(p['assignments'])==3 and p['unmet']==0
     assert len({a['from_region'] for a in p['assignments']})==3
     assert all(a['minutes']>0 for a in p['assignments'])
@@ -116,21 +116,21 @@ def test_no_treated_patients_reports_null_times_and_unmet_demand():
 def test_closed_facility_not_selected_and_shelter_capacity_conserved():
     s=local('cyclone',3,25)
     for f in s['facilities']:
-        if f['id']=='RJ-H1':f['closed']=True
+        if f['id']=='CHN-C-H1':f['closed']=True
         if f['kind']=='shelter':f['capacity']=9
     p=build_plan(s);assert all(a['facility_id']!='RJ-H1' for a in p['assignments'])
     advance(s,240);assert s['incidents'][0]['evacuated']==9
     assert_capacity(s)
 
-def test_all_states_and_union_territories_have_resource_packages():
-    assert len(REGIONS)==36
+def test_all_chennai_zones_have_resource_packages():
+    assert len(REGIONS)==8
     s=create_world()
     for region in REGIONS:
         assert any(r['region']==region['id'] for r in s['resources'])
         assert any(f['region']==region['id'] for f in s['facilities'])
 
 def test_capacity_aware_destination_avoids_saturated_nearest_hospital():
-    a=create_world('capacity',seed=7,region='RJ',count=1)
+    a=create_world('chennai_capacity',seed=7,region='CHN-S',count=1)
     b=copy.deepcopy(a)
     advance(a,180,'nearest');advance(b,180,'optimized')
     ma,mb=metrics(a),metrics(b)

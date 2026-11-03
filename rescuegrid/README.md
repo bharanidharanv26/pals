@@ -1,8 +1,8 @@
-# RescueGrid India
+# RescueGrid Chennai
 
 A working decision-support and simulation prototype for **PALS ITPRBLM–B: Intelligent Emergency Rescue and Medical Response Optimisation**.
 
-The application coordinates rescue, evacuation, ambulance transport and appropriate treatment. It includes an India-wide command map, capacity-aware recommendations, controlled strategy comparisons and timed regional assistance.
+The application coordinates rescue, evacuation, ambulance transport and appropriate treatment across **eight Chennai zones**. It includes a city command map on the real Chennai road network, capacity-aware recommendations, controlled strategy comparisons and timed zone assistance.
 
 ## Start on this computer
 
@@ -34,7 +34,7 @@ If the server is stopped or a request loses its connection, playback pauses and 
 
 ## First demonstration
 
-1. Explore **Overview** and select a state or a disaster filter.
+1. Explore **Overview** and select a Chennai zone or a disaster filter.
 2. Choose **Load exercise → Chennai · hospital saturation**.
 3. Click **Optimise resources**. Inspect rescue assignments, receiving hospitals, treatment predictions and queued demand.
 4. **Apply dispatch plan**, then use **Play** or **Step +5m**.
@@ -46,10 +46,9 @@ The simulation clock begins at 00:00 and represents elapsed exercise time. The c
 
 ## Implemented coverage
 
-- 36 state/UT resource packages, 612 simulated assets and 144 simulated facilities in the default configuration.
+- 8 Chennai zone packages, 136 simulated assets and 32 simulated facilities in the default configuration.
 - 12 response playbooks across 10 disaster families: road, rail, flood, cyclone, earthquake/collapse, landslide/avalanche, fire/explosion, chemical incidents, tsunami/coastal flooding, heatwave, medical-demand surge, and drought-related emergencies.
-- Real OpenStreetMap road packages for **Chennai and Guwahati**. Other operating areas use labelled generated networks; the importer supports additional areas.
-- 36 reference state geometries and **735 historical district records**, with published reference years and licenses. This is not a current authoritative district register.
+- A real OpenStreetMap road package for **Chennai**, shared by all eight zones. Zone boundaries are operational groupings, not administrative boundaries.
 - Rescue boats, hoist-capable helicopter assumptions, dedicated specialist crews, ambulances and evacuation buses.
 - Hospital capabilities, treatment-bay schedules, evacuation capacity, resource turnaround and scenario disruptions.
 - CP-SAT rescue assignment, patient/hospital scheduling and cross-region pre-positioning.
@@ -113,18 +112,18 @@ Read `docs/EVALUATION.md` alongside the raw CSV/JSON. No improvement percentage 
 
 ## Geographic and public-data setup
 
-### Import roads for another operating area
+### Refresh the Chennai road package
 
-Stop the app, import a bounded package, restart, and reset the exercise:
+Stop the app, import a bounded Chennai package, restart, and reset the exercise:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/import_osm.py --region OD --radius 5500
+.\.venv\Scripts\python.exe scripts/import_osm.py --region TN --radius 12000
 .\.venv\Scripts\python.exe scripts/compact_networks.py
 ```
 
-`--lat` and `--lon` can select a different centre within a state. The region selector is the package identifier; its default place label remains the catalogue anchor. Imported OSM graphs use assumed road-class speeds, explicit directionality and connected road components. Turn restrictions, road surface suitability and live traffic are not modelled.
+The imported Chennai graph is used by all eight zones. Imported OSM graphs use assumed road-class speeds, explicit directionality and connected road components. Turn restrictions, road surface suitability and live traffic are not modelled.
 
-Water/air rescue and regional transfers use explicit simulated connections. The nationwide view aggregates regional models rather than solving a single all-India street graph.
+Water/air rescue and zone transfers use explicit simulated connections rather than a turn-by-turn inter-city graph.
 
 ### Public observations and alerts
 

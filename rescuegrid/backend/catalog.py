@@ -1,43 +1,18 @@
 """Explicit assumptions and geographical anchors, independent of the solver."""
 from __future__ import annotations
 
+# Chennai operating zones. Every zone is served by the same imported Chennai road
+# package (data/networks/TN.json); the zone is an operational grouping used for
+# dispatch, mutual aid and filtering.
 REGION_ROWS = [
-    ('AN','Andaman and Nicobar Islands','Port Blair',11.6234,92.7265,'island'),
-    ('AP','Andhra Pradesh','Vijayawada',16.5062,80.6480,'coastal'),
-    ('AR','Arunachal Pradesh','Itanagar',27.0844,93.6053,'mountain'),
-    ('AS','Assam','Guwahati',26.1445,91.7362,'river'),
-    ('BR','Bihar','Patna',25.5941,85.1376,'river'),
-    ('CH','Chandigarh','Chandigarh',30.7333,76.7794,'urban'),
-    ('CG','Chhattisgarh','Raipur',21.2514,81.6296,'rural'),
-    ('DN','Dadra and Nagar Haveli and Daman and Diu','Daman',20.3974,72.8328,'coastal'),
-    ('DL','Delhi','New Delhi',28.6139,77.2090,'urban'),
-    ('GA','Goa','Panaji',15.4909,73.8278,'coastal'),
-    ('GJ','Gujarat','Ahmedabad',23.0225,72.5714,'urban'),
-    ('HR','Haryana','Gurugram',28.4595,77.0266,'urban'),
-    ('HP','Himachal Pradesh','Shimla',31.1048,77.1734,'mountain'),
-    ('JK','Jammu and Kashmir','Srinagar',34.0837,74.7973,'mountain'),
-    ('JH','Jharkhand','Ranchi',23.3441,85.3096,'rural'),
-    ('KA','Karnataka','Bengaluru',12.9716,77.5946,'urban'),
-    ('KL','Kerala','Kochi',9.9312,76.2673,'coastal'),
-    ('LA','Ladakh','Leh',34.1526,77.5771,'mountain'),
-    ('LD','Lakshadweep','Kavaratti',10.5667,72.6417,'island'),
-    ('MP','Madhya Pradesh','Bhopal',23.2599,77.4126,'rural'),
-    ('MH','Maharashtra','Mumbai',19.0760,72.8777,'urban'),
-    ('MN','Manipur','Imphal',24.8170,93.9368,'mountain'),
-    ('ML','Meghalaya','Shillong',25.5788,91.8933,'mountain'),
-    ('MZ','Mizoram','Aizawl',23.7271,92.7176,'mountain'),
-    ('NL','Nagaland','Kohima',25.6751,94.1086,'mountain'),
-    ('OD','Odisha','Bhubaneswar',20.2961,85.8245,'coastal'),
-    ('PY','Puducherry','Puducherry',11.9416,79.8083,'coastal'),
-    ('PB','Punjab','Ludhiana',30.9010,75.8573,'rural'),
-    ('RJ','Rajasthan','Jaipur',26.9124,75.7873,'rural'),
-    ('SK','Sikkim','Gangtok',27.3389,88.6065,'mountain'),
-    ('TN','Tamil Nadu','Chennai',13.0827,80.2707,'coastal'),
-    ('TS','Telangana','Hyderabad',17.3850,78.4867,'urban'),
-    ('TR','Tripura','Agartala',23.8315,91.2868,'rural'),
-    ('UP','Uttar Pradesh','Lucknow',26.8467,80.9462,'rural'),
-    ('UK','Uttarakhand','Dehradun',30.3165,78.0322,'mountain'),
-    ('WB','West Bengal','Kolkata',22.5726,88.3639,'river'),
+    ('CHN-N', 'North Chennai', 'George Town', 13.1050, 80.2850, 'urban'),
+    ('CHN-C', 'Central Chennai', 'Egmore', 13.0780, 80.2650, 'urban'),
+    ('CHN-W', 'West Chennai', 'Anna Nagar', 13.0850, 80.2200, 'urban'),
+    ('CHN-NW', 'Northwest Chennai', 'Perambur', 13.1080, 80.2350, 'urban'),
+    ('CHN-S', 'T Nagar & South', 'T Nagar', 13.0400, 80.2350, 'urban'),
+    ('CHN-SW', 'Southwest Chennai', 'Saidapet', 13.0340, 80.2230, 'urban'),
+    ('CHN-E', 'Mylapore & East Coast', 'Mylapore', 13.0330, 80.2750, 'urban'),
+    ('CHN-SE', 'Southeast Chennai', 'Alwarpet', 13.0370, 80.2580, 'urban'),
 ]
 REGIONS = [dict(id=r[0], name=r[1], city=r[2], lat=r[3], lon=r[4], terrain=r[5]) for r in REGION_ROWS]
 REGION_BY_ID = {r['id']: r for r in REGIONS}
@@ -65,21 +40,18 @@ RESOURCE_TYPES = {
 }
 SEVERITY = {'critical': 9, 'serious': 4, 'minor': 1}
 PRESETS = [
-    dict(id='national', name='National readiness exercise', region='ALL', hazard='mixed', description='Twelve concurrent emergencies across India. Coordinate scarce resources and compare treatment delays.', icon='globe', count=12),
-    dict(id='chennai', name='Chennai · highway collision', region='TN', hazard='road', description='Competing road incidents, extrication and limited trauma capacity along the Chennai corridor.', icon='road', count=5),
-    dict(id='assam', name='Assam · rising water', region='AS', hazard='flood', description='Stranded patients and evacuation groups need boats, transfer points and medical transport.', icon='water', count=5),
-    dict(id='odisha', name='Odisha · cyclone landfall', region='OD', hazard='cyclone', description='Evacuation, rescue and shelter capacity under severe congestion.', icon='wind', count=5),
-    dict(id='rail', name='Odisha · rail emergency', region='OD', hazard='rail', description='Multiple carriage-access tasks and critical patients compete for heavy rescue and advanced ambulances.', icon='train', count=4),
-    dict(id='himalaya', name='Uttarakhand · blocked access', region='UK', hazard='landslide', description='Mountain rescue, access clearance and long response journeys.', icon='mountain', count=4),
-    dict(id='gujarat', name='Gujarat · earthquake', region='GJ', hazard='earthquake', description='Extraction-dependent casualties and treatment queues after a simulated earthquake.', icon='activity', count=5),
-    dict(id='mumbai', name='Mumbai · industrial incident', region='MH', hazard='chemical', description='Decontamination and isolation-capable receiving facilities.', icon='flame', count=4),
-    dict(id='islands', name='Islands · coastal evacuation', region='AN', hazard='tsunami', description='Water rescue, inland shelters and an explicit sea/air mutual-aid connection.', icon='waves', count=4),
-    dict(id='heatwave', name='Rajasthan · heatwave', region='RJ', hazard='heatwave', description='Medical teams and hospital capacity under sustained demand.', icon='sun', count=5),
-    dict(id='compound', name='Kerala · cascading emergency', region='KL', hazard='flood', description='Flooding is followed by a facility outage and a road-corridor closure.', icon='layers', count=5),
-    dict(id='capacity', name='Chennai · hospital saturation', region='TN', hazard='road', description='Constructed bottleneck case: the nearest trauma facility is full, while a farther facility has capacity.', icon='hospital', count=3),
+    dict(id='chennai_city', name='Chennai · City road accident', region='CHN-C', hazard='road', description='A multi-vehicle collision on Anna Salai / Mount Road during peak hours. Coordinate ambulances, rescue teams and nearby trauma hospitals.', icon='road', count=4),
+    dict(id='chennai_highway', name='Chennai · Saidapet highway crash', region='CHN-SW', hazard='road', description='A serious accident on the Anna Salai–GST Road corridor near Saidapet. Long rescue and transport times to city hospitals.', icon='road', count=3),
+    dict(id='chennai_multi', name='Chennai · Multiple simultaneous accidents', region='ALL', hazard='road', description='Six accidents across the city at the same time. Scarce ambulances must be shared carefully between zones.', icon='road', count=6),
+    dict(id='chennai_capacity', name='Chennai · Hospital full (bottleneck)', region='CHN-S', hazard='road', description='The nearest trauma centre in T Nagar is full; a farther hospital has capacity. Tests whether the system picks the right destination.', icon='hospital', count=3),
+    dict(id='chennai_flood', name='Chennai · Local flooding', region='CHN-S', hazard='flood', description='Heavy rain floods low-lying areas of south Chennai. Boats and road ambulances work together to reach stranded patients.', icon='water', count=4),
+    dict(id='chennai_fire', name='Chennai · Building fire', region='CHN-S', hazard='fire', description='A commercial building fire in T Nagar. Fire engine, rescue team and burns-capable hospital response.', icon='flame', count=3),
+    dict(id='chennai_rail', name='Chennai · Railway crossing accident', region='CHN-C', hazard='rail', description='A vehicle stuck at a railway crossing near Egmore. Heavy rescue and ambulance coordination needed.', icon='train', count=2),
+    dict(id='chennai_cyclone', name='Chennai · Cyclone landfall', region='CHN-E', hazard='cyclone', description='Cyclone conditions along the east coast. Evacuation buses, shelters and trauma care compete for the same crews.', icon='water', count=3),
 ]
 
 ASSUMPTIONS = [
+    'Chennai city is the only operating area. Incidents, assets and facilities are synthetic demonstrations placed near eight Chennai zone anchors.',
     'Research simulation. Vehicle availability, staffing, casualties and facility capacities are synthetic.',
     'One patient per ambulance trip. Evacuation buses carry up to 20 people per trip.',
     'Every asset includes its assigned crew. Asset and crew are reserved together.',
@@ -87,7 +59,6 @@ ASSUMPTIONS = [
     'Treatment-bay occupancy represents emergency treatment, not the total number of hospital beds.',
     'Routine handover and vehicle turnaround take 4 and 5 simulated minutes respectively.',
     'A vehicle finishes its current travel leg; changed road conditions are applied to subsequent legs and pending dispatches.',
-    'Generated local transport graphs and water corridors are illustrative. Imported OSM road packages are labelled separately.',
-    'National assistance uses explicit estimated transfer links. Island transfers require a simulated air or sea connection.',
+    'Road routing uses a bounded OpenStreetMap extract of Chennai. Zone transfers use explicit estimated links, not turn-by-turn routing.',
     'A public warning is not a confirmed casualty report. Experiment inputs are frozen independently of public feeds.',
 ]
